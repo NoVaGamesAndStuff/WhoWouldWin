@@ -1,0 +1,35 @@
+/* File: src/App.css */
+.App {
+  text-align: center;
+}
+
+.character-container {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.character {
+  cursor: pointer;
+  border: 2px solid #ddd;
+  padding: 10px;
+  transition: transform 0.2s;
+}
+
+.character:hover {
+  transform: scale(1.1);
+}
+
+.leaderboard {
+  text-align: center;
+}
+
+.leaderboard-item {
+  margin: 10px;
+  display: inline-block;
+}
+
+.leaderboard-item.winner {
+  border: 5px solid gold;
+  padding: 5px;
+}
