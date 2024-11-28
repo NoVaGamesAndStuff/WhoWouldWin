@@ -9,10 +9,13 @@ function App() {
   const [leaderboard, setLeaderboard] = useState({});
   const [iteration, setIteration] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [usedCharacterIds, setUsedCharacterIds] = useState([]); // Track used character IDs
-  const [slamAnimation, setSlamAnimation] = useState(null); // Animation state
+  const [usedCharacterIds, setUsedCharacterIds] = useState([]);
+  const [slamAnimation, setSlamAnimation] = useState(null);
 
-  const animeIds = [5114, 40028, 6033]; // Fullmetal Alchemist, Attack on Titan, DBZK
+  // List of anime IDs
+  const animeIds = [
+    5114, 40028, 6033, 31964, 51009, 14719, 20899, 26055, 31933, 7991, 11061, 2904,
+  ];
 
   const fetchCharactersFromAnime = async (animeId) => {
     try {
@@ -20,12 +23,14 @@ function App() {
       const animeTitle = animeRes.data.data.title;
 
       const res = await axios.get(`https://api.jikan.moe/v4/anime/${animeId}/characters`);
-      return res.data.data.map((character) => ({
-        id: character.character.mal_id,
-        name: character.character.name,
-        image: character.character.images.jpg.image_url,
-        anime: animeTitle,
-      }));
+      return res.data.data
+        .filter((character) => character.character.name && character.character.images?.jpg) // Exclude incomplete characters
+        .map((character) => ({
+          id: character.character.mal_id,
+          name: character.character.name,
+          image: character.character.images.jpg.image_url,
+          anime: animeTitle,
+        }));
     } catch (error) {
       console.error(`Error fetching characters for anime ID ${animeId}:`, error);
       return [];
@@ -73,7 +78,7 @@ function App() {
   }, []);
 
   const handleClick = async (selectedSide) => {
-    setSlamAnimation(selectedSide); // Trigger specific animation
+    setSlamAnimation(selectedSide);
 
     setTimeout(async () => {
       const clickedCharacter =
@@ -95,24 +100,28 @@ function App() {
 
       if (newCharacter) {
         if (selectedSide === "left") {
-          setRightCharacter(newCharacter);
+          setRightCharacter({ ...rightCharacter, fadeOut: true });
+          setTimeout(() => setRightCharacter(newCharacter), 150);
         } else {
-          setLeftCharacter(newCharacter);
+          setLeftCharacter({ ...leftCharacter, fadeOut: true });
+          setTimeout(() => setLeftCharacter(newCharacter), 150);
         }
         setCharacters((prev) => [...prev, newCharacter]);
       }
 
       setIteration((prev) => prev + 1);
-      setSlamAnimation(null); // Reset animation state
-    }, 1000); // Animation duration
+      setSlamAnimation(null);
+    }, 500); // Faster animation duration
+  };
+
+  const handleReset = () => {
+    window.location.reload(); // Simple refresh to restart
   };
 
   if (gameOver) {
     const sortedLeaderboard = Object.entries(leaderboard).sort(
       (a, b) => b[1] - a[1]
     );
-    const winnerId = sortedLeaderboard[0]?.[0];
-    const winnerData = characters.find((char) => char?.id === parseInt(winnerId));
 
     return (
       <div className="leaderboard">
@@ -126,10 +135,13 @@ function App() {
             >
               <img src={char?.image} alt={char?.name || "Unknown"} />
               <p>{char?.name || "Unknown"}</p>
-              <p>Clicks: {count}</p>
+              <p>Wins: {count}</p>
             </div>
           );
         })}
+        <button onClick={handleReset} className="reset-button">
+          Restart Game
+        </button>
       </div>
     );
   }
@@ -139,7 +151,9 @@ function App() {
       <h1>Who Would Win?</h1>
       <div className="character-container">
         <div
-          className={`character ${slamAnimation === "left" ? "slam-left" : ""}`}
+          className={`character ${slamAnimation === "left" ? "slam-left" : ""} ${
+            leftCharacter?.fadeOut ? "fade-out" : ""
+          }`}
           onClick={() => handleClick("left")}
         >
           {leftCharacter ? (
@@ -153,7 +167,9 @@ function App() {
           )}
         </div>
         <div
-          className={`character ${slamAnimation === "right" ? "slam-right" : ""}`}
+          className={`character ${slamAnimation === "right" ? "slam-right" : ""} ${
+            rightCharacter?.fadeOut ? "fade-out" : ""
+          }`}
           onClick={() => handleClick("right")}
         >
           {rightCharacter ? (
@@ -167,10 +183,9 @@ function App() {
           )}
         </div>
       </div>
-      <p>Iteration: {iteration} / 50</p>
+      <p>Round: {iteration} / 50</p>
     </div>
   );
 }
 
 export default App;
-// fix fading on right char
