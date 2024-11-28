@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react"; //import react
-import axios from "axios"; //import axios
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./App.css";
 
 function App() {
@@ -9,9 +9,10 @@ function App() {
   const [leaderboard, setLeaderboard] = useState({});
   const [iteration, setIteration] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [usedCharacterIds, setUsedCharacterIds] = useState([]); // Store used character IDs
+  const [usedCharacterIds, setUsedCharacterIds] = useState([]); // Track used character IDs
+  const [slamAnimation, setSlamAnimation] = useState(null); // Animation state
 
-  const animeIds = [5114, 40028, 6033]; // Example: Fullmetal Alchemist, Attack on Titan, DBZK
+  const animeIds = [5114, 40028, 6033]; // Fullmetal Alchemist, Attack on Titan, DBZK
 
   const fetchCharactersFromAnime = async (animeId) => {
     try {
@@ -42,7 +43,6 @@ function App() {
           newCharacter = characters[Math.floor(Math.random() * characters.length)];
         } while (usedCharacterIds.includes(newCharacter.id)); // Ensure unique ID
 
-        // Add the new character ID to the used list
         setUsedCharacterIds((prev) => [...prev, newCharacter.id]);
         return newCharacter;
       } else {
@@ -73,33 +73,38 @@ function App() {
   }, []);
 
   const handleClick = async (selectedSide) => {
-    const clickedCharacter =
-      selectedSide === "left" ? leftCharacter : rightCharacter;
+    setSlamAnimation(selectedSide); // Trigger specific animation
 
-    if (clickedCharacter) {
-      setLeaderboard((prev) => ({
-        ...prev,
-        [clickedCharacter.id]: (prev[clickedCharacter.id] || 0) + 1,
-      }));
-    }
+    setTimeout(async () => {
+      const clickedCharacter =
+        selectedSide === "left" ? leftCharacter : rightCharacter;
 
-    if (iteration + 1 >= 50) {
-      setGameOver(true);
-      return;
-    }
-
-    const newCharacter = await fetchRandomCharacter();
-
-    if (newCharacter) {
-      if (selectedSide === "left") {
-        setRightCharacter(newCharacter);
-      } else {
-        setLeftCharacter(newCharacter);
+      if (clickedCharacter) {
+        setLeaderboard((prev) => ({
+          ...prev,
+          [clickedCharacter.id]: (prev[clickedCharacter.id] || 0) + 1,
+        }));
       }
-      setCharacters((prev) => [...prev, newCharacter]);
-    }
 
-    setIteration((prev) => prev + 1);
+      if (iteration + 1 >= 50) {
+        setGameOver(true);
+        return;
+      }
+
+      const newCharacter = await fetchRandomCharacter();
+
+      if (newCharacter) {
+        if (selectedSide === "left") {
+          setRightCharacter(newCharacter);
+        } else {
+          setLeftCharacter(newCharacter);
+        }
+        setCharacters((prev) => [...prev, newCharacter]);
+      }
+
+      setIteration((prev) => prev + 1);
+      setSlamAnimation(null); // Reset animation state
+    }, 1000); // Animation duration
   };
 
   if (gameOver) {
@@ -121,7 +126,7 @@ function App() {
             >
               <img src={char?.image} alt={char?.name || "Unknown"} />
               <p>{char?.name || "Unknown"}</p>
-              <p>Wins: {count}</p>
+              <p>Clicks: {count}</p>
             </div>
           );
         })}
@@ -133,7 +138,10 @@ function App() {
     <div className="App">
       <h1>Who Would Win?</h1>
       <div className="character-container">
-        <div className="character" onClick={() => handleClick("left")}>
+        <div
+          className={`character ${slamAnimation === "left" ? "slam-left" : ""}`}
+          onClick={() => handleClick("left")}
+        >
           {leftCharacter ? (
             <>
               <img src={leftCharacter.image} alt={leftCharacter.name} />
@@ -144,7 +152,10 @@ function App() {
             <p>Loading...</p>
           )}
         </div>
-        <div className="character" onClick={() => handleClick("right")}>
+        <div
+          className={`character ${slamAnimation === "right" ? "slam-right" : ""}`}
+          onClick={() => handleClick("right")}
+        >
           {rightCharacter ? (
             <>
               <img src={rightCharacter.image} alt={rightCharacter.name} />
@@ -162,3 +173,4 @@ function App() {
 }
 
 export default App;
+// fix fading on right char

@@ -1,27 +1,58 @@
-/* File: src/App.css */
-.App {
-  text-align: center;
+/* Background Styling */
+body {
+  background: linear-gradient(45deg, #1e3c72, #2a5298);
+  color: #fff;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+/* Character Container */
 .character-container {
   display: flex;
   justify-content: space-around;
-  margin-top: 20px;
+  margin-top: 50px;
 }
 
 .character {
   cursor: pointer;
-  border: 2px solid #ddd;
-  padding: 10px;
-  transition: transform 0.2s;
+  width: 200px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  position: relative;
 }
 
-.character:hover {
-  transform: scale(1.1);
+.character img {
+  width: 100%;
+  border-radius: 15px;
 }
 
+/* Animation for Left Slam */
+.character.slam-left {
+  transform: translateX(300px) scale(1.2); /* Winner moves to the right */
+}
+
+.character.slam-left + .character {
+  opacity: 0; /* Loser fades out */
+}
+
+/* Animation for Right Slam */
+.character.slam-right {
+  transform: translateX(-300px) scale(1.2); /* Winner moves to the left */
+}
+
+.character.slam-right ~ .character {
+  opacity: 0; /* Loser fades out */
+}
+
+/* Leaderboard */
 .leaderboard {
   text-align: center;
+  padding: 20px;
 }
 
 .leaderboard-item {
@@ -29,11 +60,11 @@
   display: inline-block;
 }
 
-.leaderboard-item.winner {
-  border: 5px solid gold;
-  padding: 5px;
+.leaderboard-item img {
+  border-radius: 15px;
 }
 
-.background{
-  background-color: navy;
+.leaderboard-item.winner {
+  border: 5px solid gold;
+  box-shadow: 0px 0px 15px 5px gold;
 }
